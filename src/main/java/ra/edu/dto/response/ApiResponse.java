@@ -1,10 +1,10 @@
 package ra.edu.dto.response;
 
 import lombok.*;
-import org.springframework.data.domain.Page;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 @Getter
 @Setter
@@ -15,7 +15,7 @@ public class ApiResponse<T> {
     private boolean success;
     private String message;
     private T data;
-    private List<Object> errors;
+    private Map<String, String> errors;
     @Builder.Default
     private LocalDateTime timestamp = LocalDateTime.now();
 
@@ -29,7 +29,7 @@ public class ApiResponse<T> {
                 .build();
     }
 
-    public static <T> ApiResponse<T> error(String message, List<Object> errors) {
+    public static <T> ApiResponse<T> error(String message, Map<String, String> errors) {
         return ApiResponse.<T>builder()
                 .success(false)
                 .message(message)
