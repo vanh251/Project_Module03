@@ -35,6 +35,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/api/courses/**").hasAuthority("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/courses/**").hasAuthority("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/courses/**").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/lessons/**").authenticated()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
