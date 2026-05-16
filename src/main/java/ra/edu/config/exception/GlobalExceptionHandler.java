@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -14,7 +15,6 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import ra.edu.dto.response.ApiResponse;
 
-import java.nio.file.AccessDeniedException;
 import java.security.SignatureException;
 import java.util.Collections;
 import java.util.HashMap;
@@ -28,8 +28,8 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<?>> handleValidationExceptions(MethodArgumentNotValidException ex){
         Map<String, String> errors = new HashMap<>();
         ex.getFieldErrors().forEach(error -> errors.put(error.getField(), error.getDefaultMessage()));
-        log.warn("Lỗi xác thực: {}", errors);
-        return new ResponseEntity<>(ApiResponse.error("xác thực không thành công", errors), HttpStatus.BAD_REQUEST);
+        log.warn("Dữ liệu đầu vào không hợp lệ: {}", errors);
+        return new ResponseEntity<>(ApiResponse.error("Dữ liệu đầu vào không hợp lệ", errors), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(ResourceNotFoundException.class)
@@ -65,6 +65,7 @@ public class GlobalExceptionHandler {
         log.error("Lỗi ràng buộc dữ liệu: {}", message, ex);
         return new ResponseEntity<>(ApiResponse.error("Dữ liệu không hợp lệ hoặc đã tồn tại", error), HttpStatus.CONFLICT);
     }
+
 
     //Jwt exception
     @ExceptionHandler(ExpiredJwtException.class)
@@ -108,10 +109,26 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(ApiResponse.error("Sai username hoặc password!", error), HttpStatus.UNAUTHORIZED);
     }
 
-    @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<ApiResponse<?>> handleAccessDeniedException(AccessDeniedException ex){
+    @ExceptionHandler(DisabledException.class)
+    public ResponseEntity<ApiResponse<?>> handleDisabledException(DisabledException ex){
+        Map<String, String> error = new HashMap<>();
+        error.put("error", "Tài khoản của bạn đã bị vô hiệu hóa");
+        log.warn("Tài khoản bị vô hiệu hóa cố gắng đăng nhập: {}", ex.getMessage());
+        return new ResponseEntity<>(ApiResponse.error("Tài khoản của bạn đã bị vô hiệu hóa. Vui lòng liên hệ quản trị viên!", error), HttpStatus.FORBIDDEN);
+    }
+
+    @ExceptionHandler(ForbiddenOperationException.class)
+    public ResponseEntity<ApiResponse<?>> handleForbiddenOperationException(ForbiddenOperationException ex){
         Map<String, String> error = new HashMap<>();
         error.put("error", ex.getMessage());
+        log.warn("Thao tác bị cấm: {}", ex.getMessage());
+        return new ResponseEntity<>(ApiResponse.error(ex.getMessage(), error), HttpStatus.FORBIDDEN);
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ApiResponse<?>> handleAccessDeniedSecurityException(AccessDeniedException ex){
+        Map<String, String> error = new HashMap<>();
+        error.put("error", "Bạn không có quyền truy cập tài nguyên này");
         log.warn("Lỗi quyền truy cập: {}", ex.getMessage());
         return new ResponseEntity<>(ApiResponse.error("Bạn không có quyền truy cập tài nguyên này!", error), HttpStatus.FORBIDDEN);
     }

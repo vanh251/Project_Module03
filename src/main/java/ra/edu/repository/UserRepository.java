@@ -1,6 +1,11 @@
 package ra.edu.repository;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import ra.edu.entity.Role;
 import ra.edu.entity.User;
 
 import java.util.Optional;
@@ -8,4 +13,10 @@ import java.util.Optional;
 public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByUsername(String username);
     boolean existsByUsername(String username);
+    @Query("SELECT u FROM User u WHERE " +
+    "(:role IS NULL OR u.role = :role ) AND " +
+    "(:isActive IS NULL OR u.isActive = :isActive)")
+    Page<User> findAllWithFilter (@Param("role") Role role,
+                                  @Param("isActive") Boolean isActive,
+                                  Pageable pageable);
 }

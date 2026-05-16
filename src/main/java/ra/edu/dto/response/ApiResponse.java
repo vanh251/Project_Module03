@@ -41,7 +41,7 @@ public class ApiResponse<T> {
 
     // Phương thức tiện ích để tạo phản hồi phân trang
 
-    public static <T> ApiResponse<T> paginated(String message,
+    public static <T> ApiResponse<PageResponse<T>> paginated(String message,
                                                List<T> data,
                                                int page,
                                                int size,
@@ -60,6 +60,11 @@ public class ApiResponse<T> {
                 .pagination(paginationMeta)
                 .build();
 
-        return success(message, (T) pageResponse);
+        return ApiResponse.<PageResponse<T>>builder()
+                .success(true)
+                .message(message)
+                .data(pageResponse)
+                .timestamp(LocalDateTime.now())
+                .build();
     }
 }
