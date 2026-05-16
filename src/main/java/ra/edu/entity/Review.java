@@ -1,5 +1,7 @@
 package ra.edu.entity;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -30,16 +32,18 @@ public class Review {
     private User student;
 
     @Column(name = "rating", nullable = false)
+    @Min(1)
+    @Max(5)
     private Integer rating;
 
     @Column(name = "comment", columnDefinition = "TEXT")
     private String comment;
 
     @CreationTimestamp
-    @Column(name = "created_at", updatable = false)
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
-    @Column(name = "updated_at")
+    @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 }

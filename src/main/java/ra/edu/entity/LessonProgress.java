@@ -1,11 +1,15 @@
 package ra.edu.entity;
+
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "lesson_progress", uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"student_id", "lesson_id"})
+        @UniqueConstraint(columnNames = {"enrollment_id", "lesson_id"})
 })
 @Getter
 @Setter
@@ -20,8 +24,8 @@ public class LessonProgress {
     private Integer progressId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "student_id", nullable = false)
-    private User student;
+    @JoinColumn(name = "enrollment_id", nullable = false)
+    private Enrollment enrollment;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "lesson_id", nullable = false)
@@ -33,4 +37,8 @@ public class LessonProgress {
 
     @Column(name = "completed_at")
     private LocalDateTime completedAt;
+
+    @UpdateTimestamp
+    @Column(name = "last_accessed_at", nullable = false)
+    private LocalDateTime lastAccessedAt;
 }

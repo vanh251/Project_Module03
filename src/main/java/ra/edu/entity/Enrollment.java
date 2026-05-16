@@ -30,7 +30,7 @@ public class Enrollment {
     private Course course;
 
     @CreationTimestamp
-    @Column(name = "enrollment_date", updatable = false)
+    @Column(name = "enrollment_date", nullable = false, updatable = false)
     private LocalDateTime enrollmentDate;
 
     @Enumerated(EnumType.STRING)
@@ -38,7 +38,10 @@ public class Enrollment {
     @Builder.Default
     private EnrollmentStatus status = EnrollmentStatus.ENROLLED;
 
-    @Column(name = "progress_percentage", precision = 5, scale = 2)
+    @Column(name = "progress_percentage", precision = 5, scale = 2, nullable = false)
     @Builder.Default
     private BigDecimal progressPercentage = BigDecimal.ZERO;
+
+    @Column(name = "completion_date")
+    private LocalDateTime completionDate;
 }

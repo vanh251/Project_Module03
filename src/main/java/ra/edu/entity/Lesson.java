@@ -2,6 +2,9 @@ package ra.edu.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "lessons")
@@ -33,7 +36,15 @@ public class Lesson {
     @Column(name = "order_index", nullable = false)
     private Integer orderIndex;
 
-    @Column(name = "is_published")
+    @Column(name = "is_published", nullable = false)
     @Builder.Default
     private Boolean isPublished = false;
+
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
 }
