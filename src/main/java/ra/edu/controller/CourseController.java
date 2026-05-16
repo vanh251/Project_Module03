@@ -6,9 +6,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 import ra.edu.dto.request.CourseRequest;
 import ra.edu.dto.request.CourseStatusRequest;
+import ra.edu.dto.request.LessonRequest;
 import ra.edu.dto.response.*;
 import ra.edu.entity.CourseStatus;
+import ra.edu.entity.User;
 import ra.edu.service.CourseService;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 
 import java.util.List;
 
@@ -66,5 +69,14 @@ public class CourseController {
     public ApiResponse<List<LessonResponse>> getCourseLessons(@PathVariable("course_id") Integer courseId) {
         List<LessonResponse> lessons = courseService.getCourseLessons(courseId);
         return ApiResponse.success("Danh sách bài học", lessons);
+    }
+
+    @PostMapping("/{course_id}/lessons")
+    public ApiResponse<LessonResponse> addLesson(
+            @PathVariable("course_id") Integer courseId,
+            @Valid @RequestBody LessonRequest request,
+            @AuthenticationPrincipal User currentUser) {
+        LessonResponse response = courseService.addLesson(courseId, request, currentUser);
+        return ApiResponse.success("Thêm bài học thành công", response);
     }
 }

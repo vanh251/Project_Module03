@@ -9,6 +9,8 @@ import org.springframework.transaction.annotation.Transactional;
 import ra.edu.config.exception.ForbiddenOperationException;
 import ra.edu.config.exception.ResourceNotFoundException;
 import ra.edu.dto.request.CourseRequest;
+import ra.edu.dto.request.CourseStatusRequest;
+import ra.edu.dto.request.LessonRequest;
 import ra.edu.dto.response.CourseDetailResponse;
 import ra.edu.dto.response.CourseResponse;
 import ra.edu.dto.response.LessonResponse;
@@ -19,6 +21,7 @@ import ra.edu.entity.Role;
 import ra.edu.entity.User;
 import ra.edu.mapper.CourseMapper;
 import ra.edu.repository.CourseRepository;
+import ra.edu.repository.LessonRepository;
 import ra.edu.repository.UserRepository;
 import ra.edu.service.CourseService;
 
@@ -30,6 +33,7 @@ import java.util.stream.Collectors;
 public class CourseServiceImpl implements CourseService {
     private final CourseRepository courseRepository;
     private final UserRepository userRepository;
+    private final LessonRepository lessonRepository;
     private final CourseMapper courseMapper;
 
     @Override
@@ -105,7 +109,7 @@ public class CourseServiceImpl implements CourseService {
 
     @Override
     @Transactional
-    public CourseResponse updateCourseStatus(Integer courseId, ra.edu.dto.request.CourseStatusRequest request) {
+    public CourseResponse updateCourseStatus(Integer courseId, CourseStatusRequest request) {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy khóa học"));
 
@@ -138,5 +142,30 @@ public class CourseServiceImpl implements CourseService {
                 .filter(Lesson::getIsPublished)
                 .map(courseMapper::toLessonResponse)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    public LessonResponse addLesson(Integer courseId, LessonRequest request, User currentUser) {
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy khóa học"));
+
+        if (currentUser.getRole() == Role.TEACHER) {
+            if (!course.getTeacher().getUserId().equals(currentUser.getUserId())) {
+                throw new ForbiddenOperationException("Bạn không có quyền thêm bài học vào khóa học này");
+            }
+        }
+
+        Lesson lesson = Lesson.builder()
+                .course(course)
+                .title(request.getTitle())
+                .contentUrl(request.getContentUrl())
+                .textContent(request.getTextContent())
+                .orderIndex(request.getOrderIndex())
+                .isPublished(request.getIsPublished() != null ? request.getIsPublished() : false)
+                .build();
+
+        Lesson savedLesson = lessonRepository.save(lesson);
+        return courseMapper.toLessonResponse(savedLesson);
     }
 }
