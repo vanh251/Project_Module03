@@ -13,12 +13,25 @@ import ra.edu.entity.User;
 import java.util.List;
 
 public interface CourseService {
-    public Page<CourseResponse> getAllCourses(CourseStatus status, int page, int size);
+    Page<CourseResponse> getAllCourses(CourseStatus status, int page, int size);
+
+    Page<CourseResponse> getCoursesByStatus(CourseStatus status, int page, int size, User currentUser);
+
+    Page<CourseResponse> searchCourses(String keyword, int page, int size);
+
+    Page<CourseResponse> getCoursesByTeacher(Integer teacherId, int page, int size);
+
     public CourseDetailResponse getCourseDetail(Integer courseId);
+
     public CourseResponse createCourse(CourseRequest request);
+
     public CourseResponse updateCourse(Integer courseId, CourseRequest request);
+
     public CourseResponse updateCourseStatus(Integer courseId, CourseStatusRequest request);
+
     public void deleteCourse(Integer courseId);
+
     public List<LessonResponse> getCourseLessons(Integer courseId);
+
     public LessonResponse addLesson(Integer courseId, LessonRequest request, User currentUser);
 }

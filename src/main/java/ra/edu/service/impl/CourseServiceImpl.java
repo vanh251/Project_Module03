@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ra.edu.config.exception.ForbiddenOperationException;
 import ra.edu.config.exception.ResourceNotFoundException;
+import ra.edu.config.exception.BadRequestException;
 import ra.edu.dto.request.CourseRequest;
 import ra.edu.dto.request.CourseStatusRequest;
 import ra.edu.dto.request.LessonRequest;
@@ -41,6 +42,41 @@ public class CourseServiceImpl implements CourseService {
     public Page<CourseResponse> getAllCourses(CourseStatus status, int page, int size) {
         Pageable pageable = PageRequest.of(page - 1, size);
         Page<Course> courses = courseRepository.findAllByStatus(status, pageable);
+        return courses.map(courseMapper::toCourseResponse);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<CourseResponse> getCoursesByStatus(CourseStatus status, int page, int size, User currentUser) {
+        if (currentUser.getRole() != Role.ADMIN) {
+            status = CourseStatus.PUBLISHED;
+        }
+
+        Pageable pageable = PageRequest.of(page - 1, size);
+        Page<Course> courses = courseRepository.findAllByStatus(status, pageable);
+        return courses.map(courseMapper::toCourseResponse);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<CourseResponse> searchCourses(String keyword, int page, int size) {
+        Pageable pageable = PageRequest.of(page - 1, size);
+        Page<Course> courses = courseRepository.searchCourses(keyword, pageable);
+        return courses.map(courseMapper::toCourseResponse);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<CourseResponse> getCoursesByTeacher(Integer teacherId, int page, int size) {
+        User teacher = userRepository.findById(teacherId.longValue())
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng"));
+
+        if (teacher.getRole() != Role.TEACHER) {
+            throw new BadRequestException("Người dùng được chỉ định không phải là giảng viên");
+        }
+
+        Pageable pageable = PageRequest.of(page - 1, size);
+        Page<Course> courses = courseRepository.findAllByTeacher(teacherId, pageable);
         return courses.map(courseMapper::toCourseResponse);
     }
 
@@ -83,6 +119,7 @@ public class CourseServiceImpl implements CourseService {
         Course savedCourse = courseRepository.save(course);
         return courseMapper.toCourseResponse(savedCourse);
     }
+
     @Override
     @Transactional
     public CourseResponse updateCourse(Integer courseId, CourseRequest request) {

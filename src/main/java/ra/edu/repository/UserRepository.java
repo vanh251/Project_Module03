@@ -13,6 +13,7 @@ import java.util.Optional;
 public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByUsername(String username);
     boolean existsByUsername(String username);
+    boolean existsByEmail(String email);
     @Query("SELECT u FROM User u WHERE " +
     "(:role IS NULL OR u.role = :role ) AND " +
     "(:isActive IS NULL OR u.isActive = :isActive)")

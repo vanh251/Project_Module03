@@ -9,6 +9,7 @@ import ra.edu.dto.response.ApiResponse;
 import ra.edu.dto.response.AuthResponse;
 import ra.edu.dto.response.UserProfileResponse;
 import ra.edu.service.AuthService;
+import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -34,5 +35,15 @@ public class AuthController {
     @GetMapping("/me")
     public ApiResponse<UserProfileResponse> getCurrentProfile() {
         return ApiResponse.success("Thông tin người dùng", authService.getCurrentProfile());
+    }
+
+    @PostMapping("/logout")
+    public ApiResponse<Void> logout(HttpServletRequest request) {
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            String token = authHeader.substring(7);
+            authService.logout(token);
+        }
+        return ApiResponse.success("Đăng xuất thành công", null);
     }
 }

@@ -11,7 +11,11 @@ import ra.edu.config.exception.ResourceNotFoundException;
 import ra.edu.dto.request.UpdateRoleRequest;
 import ra.edu.dto.request.UpdateStatusRequest;
 import ra.edu.dto.request.UserCreateRequest;
+import ra.edu.dto.request.UserUpdateRequest;
+import ra.edu.dto.request.ChangePasswordRequest;
 import ra.edu.dto.response.UserProfileResponse;
+import ra.edu.config.exception.BadRequestException;
+import ra.edu.config.exception.ResourceAlreadyExistsException;
 import ra.edu.entity.Role;
 import ra.edu.entity.User;
 import ra.edu.mapper.UserMapper;
@@ -83,4 +87,53 @@ public class UserServiceImpl implements UserService {
         userRepository.delete(targetUser);
     }
 
+    @Override
+    public UserProfileResponse updateProfile(Integer userId, UserUpdateRequest request, User currentUser) {
+        User targetUser = userRepository.findById(userId.longValue())
+                .orElseThrow(() -> new ResourceNotFoundException("Người dùng không tồn tại"));
+
+        if (currentUser.getRole() != Role.ADMIN && !targetUser.getUserId().equals(currentUser.getUserId())) {
+            throw new ForbiddenOperationException("Bạn không có quyền cập nhật thông tin người khác");
+        }
+
+        if (!targetUser.getEmail().equals(request.getEmail())) {
+            if (userRepository.existsByEmail(request.getEmail())) {
+                throw new ResourceAlreadyExistsException("Email đã được sử dụng");
+            }
+        }
+
+        targetUser.setFullName(request.getFullName());
+        targetUser.setEmail(request.getEmail());
+
+        User updatedUser = userRepository.save(targetUser);
+        return userMapper.toUserProfileResponse(updatedUser);
+    }
+
+    @Override
+    public void changePassword(Integer userId, ChangePasswordRequest request, User currentUser) {
+        User targetUser = userRepository.findById(userId.longValue())
+                .orElseThrow(() -> new ResourceNotFoundException("Người dùng không tồn tại"));
+
+        boolean isOwner = targetUser.getUserId().equals(currentUser.getUserId());
+        boolean isAdmin = currentUser.getRole() == Role.ADMIN;
+
+        if (!isOwner && !isAdmin) {
+            throw new ForbiddenOperationException("Bạn không có quyền đổi mật khẩu của người khác");
+        }
+
+        // Nếu là chủ sở hữu tài khoản đang tự đổi, bắt buộc phải cung cấp mật khẩu cũ và kiểm tra
+        if (isOwner) {
+            if (request.getOldPassword() == null || request.getOldPassword().isEmpty()) {
+                throw new BadRequestException("Vui lòng nhập mật khẩu cũ");
+            }
+            if (!passwordEncoder.matches(request.getOldPassword(), targetUser.getPasswordHash())) {
+                throw new BadRequestException("Mật khẩu cũ không chính xác");
+            }
+        }
+
+        // Nếu là ADMIN đổi mật khẩu cho người dùng khác, bỏ qua check mật khẩu cũ
+
+        targetUser.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(targetUser);
+    }
 }

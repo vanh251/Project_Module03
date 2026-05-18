@@ -30,6 +30,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/users").hasAuthority("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/users/*/role").hasAuthority("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/users/*/status").hasAuthority("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/users/*").authenticated()
                         .requestMatchers(HttpMethod.DELETE, "/api/users/**").hasAuthority("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/courses").hasAuthority("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/courses/*/lessons").hasAnyAuthority("ADMIN", "TEACHER")

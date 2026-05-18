@@ -40,6 +40,14 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(ApiResponse.error("Không tìm thấy tài nguyên", error), HttpStatus.NOT_FOUND);
     }
 
+    @ExceptionHandler(BadRequestException.class)
+    public ResponseEntity<ApiResponse<?>> handleBadRequestException(BadRequestException ex){
+        Map<String, String > error = new HashMap<>();
+        error.put("error", ex.getMessage());
+        log.warn("Lỗi yêu cầu: {}", ex.getMessage());
+        return new ResponseEntity<>(ApiResponse.error("Yêu cầu không hợp lệ", error), HttpStatus.BAD_REQUEST);
+    }
+
     @ExceptionHandler(ResourceAlreadyExistsException.class)
     public ResponseEntity<ApiResponse<?>> handleResourceAlreadyExistsException(ResourceAlreadyExistsException ex){
         Map<String, String> error = new HashMap<>();

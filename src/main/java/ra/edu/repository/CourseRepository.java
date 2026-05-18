@@ -11,6 +11,12 @@ import ra.edu.entity.CourseStatus;
 
 @Repository
 public interface CourseRepository extends JpaRepository<Course, Integer> {
-    @Query("SELECT c FROM Course c Where (:status IS NULL OR c.status = :status)")
-     Page<Course> findAllByStatus(@Param("status")CourseStatus status, Pageable pageable);
+    @Query("SELECT c FROM Course c WHERE (:status IS NULL OR c.status = :status)")
+    Page<Course> findAllByStatus(@Param("status") CourseStatus status, Pageable pageable);
+
+    @Query("SELECT c FROM Course c WHERE LOWER(c.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(c.description) LIKE LOWER(CONCAT('%', :keyword, '%'))")
+    Page<Course> searchCourses(@Param("keyword") String keyword, Pageable pageable);
+
+    @Query("SELECT c FROM Course c WHERE c.teacher.userId = :teacherId")
+    Page<Course> findAllByTeacher(@Param("teacherId") Integer teacherId, Pageable pageable);
 }

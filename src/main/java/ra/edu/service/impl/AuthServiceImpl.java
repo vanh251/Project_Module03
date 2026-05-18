@@ -82,4 +82,9 @@ public class AuthServiceImpl implements AuthService {
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy người dùng này: " + username));
         return userMapper.toUserProfileResponse(user);
     }
+
+    @Override
+    public void logout(String token) {
+        jwtService.invalidateToken(token);
+    }
 }

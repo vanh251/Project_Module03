@@ -25,10 +25,41 @@ public class CourseController {
     public ApiResponse<PageResponse<CourseResponse>> getAllCourses(
             @RequestParam(required = false) CourseStatus status,
             @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int size
-            ) {
+            @RequestParam(defaultValue = "10") int size) {
         Page<CourseResponse> coursePage = courseService.getAllCourses(status, page, size);
-        return ApiResponse.paginated("Danh sách khóa học: ", coursePage.getContent(), page, size, coursePage.getTotalElements());
+        return ApiResponse.paginated("Danh sách khóa học: ", coursePage.getContent(), page, size,
+                coursePage.getTotalElements());
+    }
+
+    @GetMapping(params = "status")
+    public ApiResponse<PageResponse<CourseResponse>> getCoursesByStatus(
+            @RequestParam("status") CourseStatus status,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @AuthenticationPrincipal User currentUser) {
+        Page<CourseResponse> coursePage = courseService.getCoursesByStatus(status, page, size, currentUser);
+        return ApiResponse.paginated("Danh sách khóa học lọc theo trạng thái: ", coursePage.getContent(), page, size,
+                coursePage.getTotalElements());
+    }
+
+    @GetMapping(params = "search")
+    public ApiResponse<PageResponse<CourseResponse>> searchCourses(
+            @RequestParam("search") String search,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        Page<CourseResponse> coursePage = courseService.searchCourses(search, page, size);
+        return ApiResponse.paginated("Kết quả tìm kiếm khóa học: ", coursePage.getContent(), page, size,
+                coursePage.getTotalElements());
+    }
+
+    @GetMapping(params = "teacher_id")
+    public ApiResponse<PageResponse<CourseResponse>> getCoursesByTeacher(
+            @RequestParam("teacher_id") Integer teacherId,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        Page<CourseResponse> coursePage = courseService.getCoursesByTeacher(teacherId, page, size);
+        return ApiResponse.paginated("Kết quả lọc khóa học theo giảng viên: ", coursePage.getContent(), page, size,
+                coursePage.getTotalElements());
     }
 
     @GetMapping("/{course_id}")

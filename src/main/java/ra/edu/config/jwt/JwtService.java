@@ -12,6 +12,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class JwtService {
@@ -61,8 +63,17 @@ public class JwtService {
         return expiration.before(new Date());
     }
 
+    private final Set<String> blacklistedTokens = ConcurrentHashMap.newKeySet();
+
+    public void invalidateToken(String token) {
+        blacklistedTokens.add(token);
+    }
+
     // kiem tra token
     public boolean isTokenValid(String token, UserDetails userDetails){
+        if (blacklistedTokens.contains(token)) {
+            return false;
+        }
         String username = extractUsername(token);
         return username.equals(userDetails.getUsername()) && !isTokenExpired(token);
     }
