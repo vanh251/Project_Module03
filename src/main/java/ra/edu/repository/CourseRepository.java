@@ -9,6 +9,8 @@ import org.springframework.stereotype.Repository;
 import ra.edu.entity.Course;
 import ra.edu.entity.CourseStatus;
 
+import java.util.List;
+
 @Repository
 public interface CourseRepository extends JpaRepository<Course, Integer> {
     @Query("SELECT c FROM Course c WHERE (:status IS NULL OR c.status = :status)")
@@ -19,4 +21,7 @@ public interface CourseRepository extends JpaRepository<Course, Integer> {
 
     @Query("SELECT c FROM Course c WHERE c.teacher.userId = :teacherId")
     Page<Course> findAllByTeacher(@Param("teacherId") Integer teacherId, Pageable pageable);
+
+    @Query("SELECT c FROM Course c WHERE c.teacher.userId = :teacherId")
+    List<Course> findAllByTeacherId(@Param("teacherId") Integer teacherId);
 }

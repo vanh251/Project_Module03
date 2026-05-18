@@ -44,6 +44,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/notifications").hasAuthority("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/notifications/**").hasAuthority("ADMIN")
                         .requestMatchers("/api/notifications", "/api/notifications/**").authenticated()
+                        .requestMatchers("/api/reports/**").hasAuthority("ADMIN")
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
