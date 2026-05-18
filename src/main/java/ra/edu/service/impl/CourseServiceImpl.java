@@ -12,18 +12,19 @@ import ra.edu.config.exception.BadRequestException;
 import ra.edu.dto.request.CourseRequest;
 import ra.edu.dto.request.CourseStatusRequest;
 import ra.edu.dto.request.LessonRequest;
+import ra.edu.dto.request.ReviewRequest;
 import ra.edu.dto.response.CourseDetailResponse;
 import ra.edu.dto.response.CourseResponse;
 import ra.edu.dto.response.LessonResponse;
+import ra.edu.dto.response.ReviewResponse;
 import ra.edu.entity.Course;
 import ra.edu.entity.CourseStatus;
 import ra.edu.entity.Lesson;
+import ra.edu.entity.Review;
 import ra.edu.entity.Role;
 import ra.edu.entity.User;
 import ra.edu.mapper.CourseMapper;
-import ra.edu.repository.CourseRepository;
-import ra.edu.repository.LessonRepository;
-import ra.edu.repository.UserRepository;
+import ra.edu.repository.*;
 import ra.edu.service.CourseService;
 
 import java.util.List;
@@ -35,7 +36,9 @@ public class CourseServiceImpl implements CourseService {
     private final CourseRepository courseRepository;
     private final UserRepository userRepository;
     private final LessonRepository lessonRepository;
+    private final ReviewRepository reviewRepository;
     private final CourseMapper courseMapper;
+    private final EnrollmentRepository enrollmentRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -204,5 +207,62 @@ public class CourseServiceImpl implements CourseService {
 
         Lesson savedLesson = lessonRepository.save(lesson);
         return courseMapper.toLessonResponse(savedLesson);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<ReviewResponse> getCourseReviews(Integer courseId, int page, int size) {
+        courseRepository.findById(courseId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy khóa học"));
+
+        Pageable pageable = PageRequest.of(page - 1, size);
+        return reviewRepository.findByCourseId(courseId, pageable)
+                .map(review -> ReviewResponse.builder()
+                        .reviewId(review.getReviewId())
+                        .studentName(review.getStudent().getFullName())
+                        .rating(review.getRating())
+                        .comment(review.getComment())
+                        .createdAt(review.getCreatedAt())
+                        .build());
+    }
+
+    @Override
+    @Transactional
+    public ReviewResponse addCourseReview(Integer courseId, ReviewRequest request, User currentUser) {
+        if (currentUser.getRole() != Role.STUDENT) {
+            throw new ForbiddenOperationException("Chỉ sinh viên mới được đánh giá khóa học");
+        }
+
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy khóa học"));
+
+        // Kiểm tra xem sinh viên đã tham gia khóa học này chưa
+        boolean isEnrolled = enrollmentRepository.existsByStudentAndCourse(currentUser, course);
+        if (!isEnrolled) {
+            throw new BadRequestException("Bạn chưa tham gia khóa học này nên không thể đánh giá");
+        }
+
+        // Kiểm tra xem sinh viên đã đánh giá khóa học này chưa
+        boolean hasReviewed = reviewRepository.existsByStudentAndCourse(currentUser, course);
+        if (hasReviewed) {
+            throw new BadRequestException("Bạn đã đánh giá khóa học này rồi");
+        }
+
+        Review review = Review.builder()
+                .course(course)
+                .student(currentUser)
+                .rating(request.getRating())
+                .comment(request.getComment())
+                .build();
+
+        Review savedReview = reviewRepository.save(review);
+
+        return ReviewResponse.builder()
+                .reviewId(savedReview.getReviewId())
+                .studentName(savedReview.getStudent().getFullName())
+                .rating(savedReview.getRating())
+                .comment(savedReview.getComment())
+                .createdAt(savedReview.getCreatedAt())
+                .build();
     }
 }

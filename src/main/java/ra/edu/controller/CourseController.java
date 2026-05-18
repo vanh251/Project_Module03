@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import ra.edu.dto.request.CourseRequest;
 import ra.edu.dto.request.CourseStatusRequest;
 import ra.edu.dto.request.LessonRequest;
+import ra.edu.dto.request.ReviewRequest;
 import ra.edu.dto.response.*;
 import ra.edu.entity.CourseStatus;
 import ra.edu.entity.User;
@@ -109,5 +110,25 @@ public class CourseController {
             @AuthenticationPrincipal User currentUser) {
         LessonResponse response = courseService.addLesson(courseId, request, currentUser);
         return ApiResponse.success("Thêm bài học thành công", response);
+    }
+
+    @GetMapping("/{course_id}/reviews")
+    public ApiResponse<PageResponse<ReviewResponse>> getCourseReviews(
+            @PathVariable("course_id") Integer courseId,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        Page<ReviewResponse> reviewPage = courseService.getCourseReviews(courseId, page, size);
+        return ApiResponse.paginated("Danh sách đánh giá khóa học", reviewPage.getContent(), page, size, reviewPage.getTotalElements());
+    }
+
+    @PostMapping("/{course_id}/reviews")
+    public ApiResponse<ReviewResponse> addCourseReview(
+            @PathVariable("course_id") Integer courseId,
+            @Valid @RequestBody ReviewRequest request,
+            @AuthenticationPrincipal User currentUser
+    ) {
+        ReviewResponse response = courseService.addCourseReview(courseId, request, currentUser);
+        return ApiResponse.success("Gửi đánh giá thành công", response);
     }
 }
