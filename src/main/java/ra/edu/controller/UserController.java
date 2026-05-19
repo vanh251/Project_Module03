@@ -27,16 +27,10 @@ public class UserController {
     @GetMapping
     public ApiResponse<PageResponse<UserProfileResponse>> getAllUser(
             @RequestParam(required = false) Role role,
-            @RequestParam(required = false) String status,
+            @RequestParam(required = false) Boolean isActive,
             @RequestParam(defaultValue = "1") @Min(1) int page,
             @RequestParam(defaultValue = "10") @Min(1) int size
             ){
-        Boolean isActive = null;
-        if ("active".equalsIgnoreCase(status)) {
-            isActive = true;
-        } else if ("inactive".equalsIgnoreCase(status)) {
-            isActive = false;
-        }
         Page<UserProfileResponse> userPage = userService.getAllUsers(role, isActive, page, size);
         return ApiResponse.paginated("Danh sách người dùng: ", userPage.getContent(), page, size, userPage.getTotalElements());
     }
